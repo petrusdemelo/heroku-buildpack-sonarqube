@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-# fail fast
 set -e
 
 # parse args
@@ -10,8 +9,7 @@ CACHE_DIR=$2
 
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-SONAR_VERSION="7.4"
-ANT_VERSION="1.9.9"
+SONAR_VERSION="9.9.3.79811"
 SONAR_HOME=${BUILD_DIR}/sonarqube
 
 echo ${SONAR_HOME};
@@ -85,7 +83,7 @@ install_sonarts_plugin() {
   local BUILD_DIR=${1}
   local CACHE_DIR=${2}
   
-  SONARTS_DIST_JAR="sonar-typescript-plugin-1.6.0.2388.jar"
+  SONARTS_DIST_JAR="sonar-typescript-plugin-2.1.0.4359.jar"
   SONARTS_URL="https://sonarsource.bintray.com/Distribution/sonar-typescript-plugin/${SONARTS_DIST_JAR}"
 
   echo -n "-----> Downloading SonarTS....."
@@ -98,34 +96,9 @@ install_sonarts_plugin() {
   echo " done"
 }
 
-install_nodejs() {
-  local BUILD_DIR=${1}
-  local CACHE_DIR=${2}
-
-  NODE_DIST_FILE="node-v8.10.0-linux-x64.tar.xz"
-  NODE_DIST_URL="https://nodejs.org/dist/v8.10.0/${NODE_DIST_FILE}"
-
-  if [ ! -f ${CACHE_DIR}/${NODE_DIST_FILE} ]; then
-    echo -n "-----> Downloading NodeJS....."
-    curl --silent --location ${NODE_DIST_URL} > ${CACHE_DIR}/${NODE_DIST_FILE}
-    echo " done"
-  fi
-
-  echo -n "-----> Installing NodeJS....."
-
-  tar xf ${CACHE_DIR}/${NODE_DIST_FILE} -C ${BUILD_DIR}
-
-  ln -s ${BUILD_DIR}/${NODE_DIST_FILE}/bin/node ${BUILD_DIR}/.heroku/bin/node
-  ln -s ${BUILD_DIR}/${NODE_DIST_FILE}/bin/npm ${BUILD_DIR}/.heroku/bin/npm
-  ln -s ${BUILD_DIR}/${NODE_DIST_FILE}/bin/npx ${BUILD_DIR}/.heroku/bin/npx
-
-  echo " done"
-}
-
 
 install_jdk ${BUILD_DIR} ${CACHE_DIR}
-install_nodejs ${BUILD_DIR} ${CACHE_DIR}
 install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
-#install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
+install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
 
 
