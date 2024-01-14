@@ -96,6 +96,27 @@ install_sonarts_plugin() {
   echo " done"
 }
 
+_env_blacklist() {
+  local regex=${1:-''}
+  if [ -n "$regex" ]; then
+    regex="|$regex"
+  fi
+  echo "^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH$regex)$"
+}
+
+export_env() {
+  local env_dir=${1:-$ENV_DIR}
+  local whitelist=${2:-''}
+  local blacklist="$(_env_blacklist $3)"
+  if [ -d "$env_dir" ]; then
+    for e in $(ls $env_dir); do
+      echo "$e" | grep -E "$whitelist" | grep -qvE "$blacklist" &&
+      export "$e=$(cat $env_dir/$e)"
+      :
+    done
+  fi
+}
+
 export_env $ENV_DIR "." "JAVA_OPTS|JAVA_TOOL_OPTIONS"
 
 install_jdk ${BUILD_DIR} ${CACHE_DIR}
