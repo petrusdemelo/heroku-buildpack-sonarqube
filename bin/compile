@@ -16,27 +16,14 @@ echo ${SONAR_HOME};
 echo ${BUILD_DIR};
 echo ${CACHE_DIR};
 
+source $BP_DIR/lib/common.sh
+source $BP_DIR/lib/maven.sh
+source $BP_DIR/lib/buildpack-stdlib-v7.sh
+
 if [ ! -d ${CACHE_DIR} ]; then
     mkdir -p ${CACHE_DIR}
 fi
 
-install_jdk() {
-  local install_dir=${1}
-  local cache_dir=${2}
-
-  let start=$(nowms)
-  JVM_COMMON_BUILDPACK=${JVM_COMMON_BUILDPACK:-https://buildpack-registry.s3.us-east-1.amazonaws.com/buildpacks/heroku/jvm.tgz}
-  mkdir -p /tmp/jvm-common
-  curl --fail --retry 3 --retry-connrefused --connect-timeout 5 --silent --location $JVM_COMMON_BUILDPACK | tar xzm -C /tmp/jvm-common --strip-components=1
-  source /tmp/jvm-common/bin/util
-  source /tmp/jvm-common/bin/java
-  source /tmp/jvm-common/opt/jdbc.sh
-  mtime "jvm-common.install.time" "${start}"
-
-  let start=$(nowms)
-  install_java_with_overlay "${install_dir}" "${cache_dir}"
-  mtime "jvm.install.time" "${start}"
-}
 
 install_sonarqube() {
   local BUILD_DIR=${1}
@@ -94,27 +81,6 @@ install_sonarts_plugin() {
   cp ${CACHE_DIR}/${SONARTS_DIST_JAR} ${SONAR_HOME}/extensions/plugins/${SONARTS_DIST_JAR}
   chmod +rwx ${SONAR_HOME}/extensions/plugins/${SONARTS_DIST_JAR}
   echo " done"
-}
-
-_env_blacklist() {
-  local regex=${1:-''}
-  if [ -n "$regex" ]; then
-    regex="|$regex"
-  fi
-  echo "^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH$regex)$"
-}
-
-export_env() {
-  local env_dir=${1:-$ENV_DIR}
-  local whitelist=${2:-''}
-  local blacklist="$(_env_blacklist $3)"
-  if [ -d "$env_dir" ]; then
-    for e in $(ls $env_dir); do
-      echo "$e" | grep -E "$whitelist" | grep -qvE "$blacklist" &&
-      export "$e=$(cat $env_dir/$e)"
-      :
-    done
-  fi
 }
 
 export_env $ENV_DIR "." "JAVA_OPTS|JAVA_TOOL_OPTIONS"
