@@ -89,4 +89,7 @@ install_jdk ${BUILD_DIR} ${CACHE_DIR}
 install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
 install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
 
-
+sysctl -w vm.max_map_count=524288
+sysctl -w fs.file-max=131072
+ulimit -n 131072
+ulimit -u 8192
